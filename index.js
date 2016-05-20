@@ -50,7 +50,7 @@ module.exports = function plugin(options) {
 				return postcss(options.plugins).process(content);
 			}).then(function (processed) {
 				// Find corresponding elements and replace their classes
-				Object.keys(processed.root.tokens).forEach(function(key) {
+				Object.keys(processed.root.tokens).forEach(function (key) {
 					tree.match(match('[classname=' + key + ']'), function (node) {
 						delete node.attrs.classname;
 						node.attrs.class = processed.root.tokens[key];
