@@ -1,0 +1,46 @@
+{
+  "name": "posthtml-postcss-modules",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "nyc ava",
+    "pretest": "xo"
+  },
+  "keywords": [
+    "posthtml",
+    "parser",
+    "transform",
+    "html",
+    "module",
+    "css-modules",
+    "postcss",
+    "postcss-modules"
+  ],
+  "author": "Aleksandr Yakunichev <canvaskisa@gmail.com> (https://github.com/canvaskisa)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/canvaskisa/posthtml-postcss-modules.git"
+  },
+  "bugs": {
+    "url": "https://github.com/canvaskisa/posthtml-postcss-modules/issues"
+  },
+  "homepage": "https://github.com/canvaskisa/posthtml-postcss-modules",
+  "dependencies": {
+    "generic-names": "^1.0.1",
+    "postcss": "^5.0.21",
+    "postcss-modules-extract-imports": "^1.0.1",
+    "postcss-modules-local-by-default": "^1.0.1",
+    "postcss-modules-parser": "^1.1.0",
+    "postcss-modules-scope": "^1.0.1",
+    "postcss-modules-values": "^1.1.3",
+    "posthtml-match-helper": "^1.0.1"
+  },
+  "devDependencies": {
+    "ava": "^0.14.0",
+    "nyc": "^6.4.4",
+    "posthtml": "^0.8.7",
+    "xo": "^0.15.1"
+  }
+}
