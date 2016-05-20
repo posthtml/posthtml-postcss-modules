@@ -1,7 +1,7 @@
 {
   "name": "posthtml-postcss-modules",
-  "version": "0.0.0",
-  "description": "",
+  "version": "0.0.1",
+  "description": "CSS Modules in html",
   "main": "index.js",
   "scripts": {
     "test": "nyc ava",

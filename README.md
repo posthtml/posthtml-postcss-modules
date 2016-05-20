@@ -63,7 +63,7 @@ options = {
 ```
 
 ## Related
-[css-modules](https://github.com/css-modules/css-modules)
+[CSS Modules](https://github.com/css-modules/css-modules)
 
 ## License
 MIT © [Aleksandr Yakunichev](https://github.com/canvaskisa)
