@@ -21,7 +21,7 @@ $ npm i --save posthtml-postcss-modules
 ```
 
 ```css
-<!-- header.css -->
+/* header.css */
 .root {background-color: white;}
 .navigation {height: 100px;}
 ```
