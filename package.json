@@ -1,6 +1,6 @@
 {
   "name": "posthtml-postcss-modules",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "CSS Modules in html",
   "main": "index.js",
   "scripts": {

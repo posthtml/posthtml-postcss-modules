@@ -53,7 +53,7 @@ module.exports = function plugin(options) {
 				Object.keys(processed.root.tokens).forEach(function (key) {
 					tree.match(match('[classname=' + key + ']'), function (node) {
 						delete node.attrs.classname;
-						node.attrs.class = processed.root.tokens[key];
+						node.attrs.class = node.attrs.class ? node.attrs.class + ' ' + processed.root.tokens[key] : processed.root.tokens[key];
 						return node;
 					});
 				});
