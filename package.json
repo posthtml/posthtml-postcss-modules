@@ -42,5 +42,12 @@
     "nyc": "^6.4.4",
     "posthtml": "^0.8.7",
     "xo": "^0.15.1"
+  },
+  "nyc": {
+    "lines": 100,
+    "branches": 100,
+    "statements": 100,
+    "functions": 100,
+    "check-coverage": true
   }
 }

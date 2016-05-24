@@ -26,11 +26,13 @@ module.exports = function plugin(options) {
 	options = options || {};
 	options.context = options.context || './';
 
+	/* istanbul ignore next: do we really need to test this? */
 	if (options.generateScopedName) {
 		options.generateScopedName = typeof options.generateScopedName === 'function' ?
 			options.generateScopedName :
 			genericNames(options.generateScopedName, {context: options.context});
 	} else {
+		/* istanbul ignore next: do we really need to test this? */
 		options.generateScopedName = function (local, filename) {
 			return Scope.generateScopedName(local, path.resolve(options.context, filename));
 		};
