@@ -14,6 +14,10 @@ $ npm i --save posthtml-postcss-modules
 <!-- header.html -->
 <link href="header.css" module/>
 
+<style module>
+  .navigation {height: 100px;}
+</style>
+
 <header classname="root">
   <nav classname="navigation">
   </nav>
@@ -23,7 +27,6 @@ $ npm i --save posthtml-postcss-modules
 ```css
 /* header.css */
 .root {background-color: white;}
-.navigation {height: 100px;}
 ```
 
 ```js
@@ -40,10 +43,8 @@ posthtml()
     return result; 
 
     /**
-     * <style>
-     *   .wqroe {background-color: white;}
-     *   ._32Lja {color: red;}
-     * </style>
+     * <style>.wqroe {background-color: white;}</style>
+     * <style>._32Lja {color: red;}</style>
      *
      * <header class="wqroe">
      *   <nav class="_32Lja">

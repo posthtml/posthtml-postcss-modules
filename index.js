@@ -43,11 +43,11 @@ module.exports = function plugin(options) {
 	return function parse(tree) {
 		var promises = [];
 
-		tree.match(match('link[module][href]'), function (link) {
+		tree.match(match('link[module][href], style[module]'), function (module) {
 			promises.push(new Promise(function (resolve, reject) {
-				return fs.readFile(path.resolve(options.context, link.attrs.href), 'utf8', function (err, res) {
+				return module.tag === 'link' ? fs.readFile(path.resolve(options.context, module.attrs.href), 'utf8', function (err, res) {
 					return err ? reject(err) : resolve(res);
-				});
+				}) : resolve(module.content);
 			}).then(function (content) {
 				return postcss(options.plugins).process(content);
 			}).then(function (processed) {
@@ -60,16 +60,16 @@ module.exports = function plugin(options) {
 					});
 				});
 
-				// Delete links properties
-				delete link.attrs.href;
-				delete link.attrs.module;
+				// Delete modules properties
+				delete module.attrs.href;
+				delete module.attrs.module;
 
-				// Replace link with style tag
-				link.tag = 'style';
-				link.content = processed.css;
+				// Replace module with style tag
+				module.tag = 'style';
+				module.content = processed.css;
 			}));
 
-			return link;
+			return module;
 		});
 
 		return Promise.all(promises).then(function () {

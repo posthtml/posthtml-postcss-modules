@@ -40,6 +40,13 @@ test('Must keep previous classes on html elements', async t => {
 });
 
 test('Must fail when module\'s href cannot be found', async t => {
-	const actual = `<div><link href="./undefined.css" module/></div>`;
-	t.throws(posthtml().use(plugin()).process(actual));
+	const source = `<div><link href="./undefined.css" module/></div>`;
+	t.throws(posthtml().use(plugin()).process(source));
+});
+
+test('Must process <style module/> contents', async t => {
+	const source = '<style module>.a {color: black}</style><div classname="a"></div>';
+	const expected = '<style>.a-test {color: black}</style><div class="a-test"></div>';
+	const {html} = await posthtml().use(plugin({generateScopedName: '[local]-test'})).process(source);
+	t.is(html, expected);
 });
