@@ -19,7 +19,7 @@ $ npm i --save posthtml-postcss-modules
 </style>
 
 <header classname="root">
-  <nav classname="navigation">
+  <nav classname="root navigation">
   </nav>
 </header>
 ```
@@ -47,7 +47,7 @@ posthtml()
      * <style>._32Lja {color: red;}</style>
      *
      * <header class="wqroe">
-     *   <nav class="_32Lja">
+     *   <nav class="wqroe _32Lja">
      *   </nav>
      * </header>
      */

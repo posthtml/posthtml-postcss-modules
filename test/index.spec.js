@@ -45,8 +45,8 @@ test('Must fail when module\'s href cannot be found', async t => {
 });
 
 test('Must process <style module/> contents', async t => {
-	const source = '<style module>.a {color: black}</style><div classname="a"></div>';
-	const expected = '<style>.a-test {color: black}</style><div class="a-test"></div>';
+	const source = '<style module>.a {color: black} .b {color: white}</style><div classname="a b"></div>';
+	const expected = '<style>.a-test {color: black} .b-test {color: white}</style><div class="a-test b-test"></div>';
 	const {html} = await posthtml().use(plugin({generateScopedName: '[local]-test'})).process(source);
 	t.is(html, expected);
 });
