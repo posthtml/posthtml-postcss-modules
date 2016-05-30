@@ -50,3 +50,10 @@ test('Must process <style module/> contents', async t => {
 	const {html} = await posthtml().use(plugin({generateScopedName: '[local]-test'})).process(source);
 	t.is(html, expected);
 });
+
+test('Must match classes properly', async t => {
+	const source = '<style module>.a {color: black} .ab {color: white}</style><div classname="ab"></div>';
+	const expected = '<style>.a-test {color: black} .ab-test {color: white}</style><div class="ab-test"></div>';
+	const {html} = await posthtml().use(plugin({generateScopedName: '[local]-test'})).process(source);
+	t.is(html, expected);
+});

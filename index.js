@@ -58,7 +58,7 @@ module.exports = function plugin(options) {
 			}).then(function (processed) {
 				// Find corresponding elements and replace their classes
 				Object.keys(processed.root.tokens).forEach(function (key) {
-					tree.match(match('[classname*=' + key + ']'), function (node) {
+					tree.match({attrs: {classname: new RegExp('(?:^|\\s)' + key + '(?:\\s|$)')}}, function (node) {
 						node.attrs.class = node.attrs.class ? node.attrs.class + ' ' + processed.root.tokens[key] : processed.root.tokens[key];
 						return node;
 					});
