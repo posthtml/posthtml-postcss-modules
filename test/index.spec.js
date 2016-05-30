@@ -57,3 +57,17 @@ test('Must match classes properly', async t => {
 	const {html} = await posthtml().use(plugin({generateScopedName: '[local]-test'})).process(source);
 	t.is(html, expected);
 });
+
+test('Must be able to compose styles', async t => {
+	const source = '<style module>.c {width: 50px;} .b {height: 100px;} .a {color: black; composes: b c;}</style><div classname="a"></div>';
+	const expected = '<style>.c-test {width: 50px;} .b-test {height: 100px;} .a-test {color: black;}</style><div class="a-test b-test c-test"></div>';
+	const {html} = await posthtml().use(plugin({generateScopedName: '[local]-test'})).process(source);
+	t.is(html, expected);
+});
+
+test('Must be able to compose styles from file', async t => {
+	const source = '<style module>.compose {color: black; composes: compositor from "./compose.spec.css"}</style><div classname="compose"></div>';
+	const expected = '<style>.compose-test {color: black}</style><div class="compose-test compositor-test"></div>';
+	const {html} = await posthtml().use(plugin({generateScopedName: '[local]-test'})).process(source);
+	t.is(html, expected);
+});

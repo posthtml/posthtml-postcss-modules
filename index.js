@@ -15,17 +15,7 @@ var Parser = require('postcss-modules-parser');
 /**
  * @todo
  * 1. new Parser({fetch})
- * 2. clean up a little
  */
-function getPostcssPlugins(generateScopedName) {
-	return [
-		Values,
-		LocalByDefault,
-		ExtractImports,
-		new Scope({generateScopedName: generateScopedName}),
-		Parser
-	];
-}
 
 module.exports = function plugin(options) {
 	options = options || {};
@@ -43,7 +33,40 @@ module.exports = function plugin(options) {
 		};
 	}
 
+	function getPostcssPlugins(generateScopedName) {
+		return [
+			Values,
+			LocalByDefault,
+			ExtractImports,
+			new Scope({generateScopedName: generateScopedName}),
+			new Parser({fetch: fetch})
+		];
+	}
+
 	options.plugins = (options.plugins || []).concat(getPostcssPlugins(options.generateScopedName));
+	var runner = postcss(options.plugins);
+
+	function fetch(_to, _from) {
+		var to = _to.replace(/^["']|["']$/g, '');
+		/* istanbul ignore next */
+		var filename = /\w/i.test(to[0]) ?
+			require.resolve(to) :
+			path.resolve(_from ? path.dirname(_from) : '', to);
+
+		return new Promise(function (resolve, reject) {
+			return fs.readFile(filename, 'utf8', function (err, css) {
+				/* istanbul ignore next: just error handler */
+				if (err) {
+					return reject(err);
+				}
+
+				return runner.process(css, {from: filename})
+					.then(function (result) {
+						return resolve(result.root.tokens);
+					}).catch(reject);
+			});
+		});
+	}
 
 	return function parse(tree) {
 		var promises = [];
@@ -54,7 +77,7 @@ module.exports = function plugin(options) {
 					return err ? reject(err) : resolve(res);
 				}) : resolve(module.content);
 			}).then(function (content) {
-				return postcss(options.plugins).process(content);
+				return runner.process(content);
 			}).then(function (processed) {
 				// Find corresponding elements and replace their classes
 				Object.keys(processed.root.tokens).forEach(function (key) {
