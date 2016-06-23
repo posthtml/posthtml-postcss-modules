@@ -13,100 +13,135 @@ var Scope = require('postcss-modules-scope');
 var Parser = require('postcss-modules-parser');
 
 /**
- * @todo
- * 1. new Parser({fetch})
+ * ⚒ @todo
+ * 1. Fix generateScopeName path resolving
+ * 2. Fix fetch path resolving (compose: className from '../mixins.css')
  */
 
-module.exports = function plugin(options) {
-	options = options || {};
-	options.context = options.context || './';
+/**
+ * retieves content of node element
+ * or reads file from href attribute of <link module>
+ * @param  {Object} node
+ * @return {Promise<String>} contents of file or <style> tag
+ */
+function getContentFromNode(options, node) {
+	return new Promise(function (resolve, reject) {
+		if (node.tag === 'link') {
+			// Path resolving seems ok here 👍
+			var filePath = path.join(path.isAbsolute(node.attrs.href) ? options.root : path.dirname(options.from), node.attrs.href);
+			return fs.readFile(filePath, 'utf8', function (err, res) {
+				return err ? reject(err) : resolve(res);
+			});
+		}
 
-	/* istanbul ignore next: do we really need to test this? */
-	if (options.generateScopedName) {
-		options.generateScopedName = typeof options.generateScopedName === 'function' ?
-			options.generateScopedName :
-			genericNames(options.generateScopedName, {context: options.context});
-	} else {
-		/* istanbul ignore next: do we really need to test this? */
-		options.generateScopedName = function (local, filename) {
-			return Scope.generateScopedName(local, path.resolve(options.context, filename));
-		};
-	}
+		return resolve(node.content);
+	});
+}
 
-	function getPostcssPlugins(generateScopedName) {
-		return [
+/**
+ * processes css with css-modules plugins
+ * @param  {Object} options [plugin's options]
+ * @return {Function}
+ */
+function processContentWithPostCSS(options, node) {
+	/**
+	 * @param  {String} content [css to process]
+	 * @return {Object}         [object with css tokens and css itself]
+	 */
+	return function (content) {
+		if (options.generateScopedName) {
+			options.generateScopedName = typeof options.generateScopedName === 'function' ?
+				options.generateScopedName :
+				genericNames(options.generateScopedName, {context: options.from || options.root});
+		} else {
+			options.generateScopedName = function (local, filename) {
+				// @todo
+				// 😭 Wondering how to fix name resolving...
+				var filePath = path.join(path.dirname(options.from), path.basename(node.attrs.href || filename)).replace(options.root, '');
+				return Scope.generateScopedName(local, filePath);
+			};
+		}
+
+		// Setup css-modules plugins 💼
+		var runner = postcss([
 			Values,
 			LocalByDefault,
 			ExtractImports,
-			new Scope({generateScopedName: generateScopedName}),
+			new Scope({generateScopedName: options.generateScopedName}),
 			new Parser({fetch: fetch})
-		];
-	}
+		].concat(options.plugins));
 
-	options.plugins = (options.plugins || []).concat(getPostcssPlugins(options.generateScopedName));
-	var runner = postcss(options.plugins);
+		function fetch(to) {
+			// @todo
+			// 😭 Wondering how to fix name resolving...
+			var filePath = path.join(path.isAbsolute(to) ? options.root : path.dirname(options.from), to);
 
-	function fetch(_to, _from) {
-		var to = _to.replace(/^["']|["']$/g, '');
-		/* istanbul ignore next */
-		var filename = /\w/i.test(to[0]) ?
-			require.resolve(to) :
-			path.resolve(_from ? path.dirname(_from) : '', to);
+			return new Promise(function (resolve, reject) {
+				return fs.readFile(filePath, 'utf8', function (err, css) {
+					/* istanbul ignore next: just error handler */
+					if (err) {
+						return reject(err);
+					}
 
-		return new Promise(function (resolve, reject) {
-			return fs.readFile(filename, 'utf8', function (err, css) {
-				/* istanbul ignore next: just error handler */
-				if (err) {
-					return reject(err);
-				}
-
-				return runner.process(css, {from: filename})
-					.then(function (result) {
-						return resolve(result.root.tokens);
-					}).catch(reject);
+					return runner.process(css, {from: filePath})
+						.then(function (result) {
+							return resolve(result.root.tokens);
+						}).catch(reject);
+				});
 			});
-		});
-	}
+		}
+
+		return runner.process(content);
+	};
+}
+
+module.exports = function plugin(options) {
+	options = options || {};
+	options.root = path.resolve(options.root || './');
+	options.plugins = options.plugins || [];
+	options.from = options.from || '';
 
 	return function parse(tree) {
 		var promises = [];
 
-		tree.match(match('link[module][href], style[module]'), function (module) {
-			promises.push(new Promise(function (resolve, reject) {
-				return module.tag === 'link' ? fs.readFile(path.resolve(options.context, module.attrs.href), 'utf8', function (err, res) {
-					return err ? reject(err) : resolve(res);
-				}) : resolve(module.content);
-			}).then(function (content) {
-				return runner.process(content);
-			}).then(function (processed) {
-				// Find corresponding elements and replace their classes
-				Object.keys(processed.root.tokens).forEach(function (key) {
-					tree.match({attrs: {classname: new RegExp('(?:^|\\s)' + key + '(?:\\s|$)')}}, function (node) {
-						node.attrs.class = node.attrs.class ? node.attrs.class + ' ' + processed.root.tokens[key] : processed.root.tokens[key];
+		tree.match(match('link[module][href], style[module]'), function (node) {
+			promises.push(getContentFromNode(options, node)
+				.then(processContentWithPostCSS(options, node))
+				.then(function (processed) {
+					/**
+					 * Replacing all classname attributes in html,
+					 * which classes from css
+					 */
+					Object.keys(processed.root.tokens).forEach(function (key) {
+						tree.match({attrs: {classname: new RegExp('(?:^|\\s)' + key + '(?:\\s|$)')}}, function (node) {
+							node.attrs.class = node.attrs.class ? node.attrs.class + ' ' + processed.root.tokens[key] : processed.root.tokens[key];
+							return node;
+						});
+					});
+
+					// Remove classnames attribute from everything
+					tree.match(match('[classname]'), function (node) {
+						delete node.attrs.classname;
 						return node;
 					});
-				});
 
-				// Remove all classname props
-				tree.match(match('[classname]'), function (node) {
-					delete node.attrs.classname;
-					return node;
-				});
+					/**
+					 * Remove href and module attributes
+					 * and replace tag with <style>
+					 * and content with parsed css, hooray! 🙌
+					 */
+					delete node.attrs.href;
+					delete node.attrs.module;
+					node.tag = 'style';
+					node.content = processed.css;
+				})
+			);
 
-				// Delete module properties
-				delete module.attrs.href;
-				delete module.attrs.module;
-
-				// Replace module with style tag
-				module.tag = 'style';
-				module.content = processed.css;
-			}));
-
-			return module;
+			return node;
 		});
 
-		return Promise.all(promises).then(function () {
+		return promises.length ? Promise.all(promises).then(function () {
 			return tree;
-		});
+		}) : tree;
 	};
 };
