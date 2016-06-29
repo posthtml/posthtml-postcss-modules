@@ -38,7 +38,7 @@ function getContentFromNode(options, node) {
  * @return {String}       [absolute path to file]
  */
 function normalizePath(href, _root, _from) {
-	return path.join(path.isAbsolute(href) ? _root : path.dirname(_from), href);
+	return href ? path.join(path.isAbsolute(href) ? _root : path.dirname(_from), href) : _from;
 }
 
 /**
@@ -103,7 +103,7 @@ module.exports = function plugin(options) {
 	return function parse(tree) {
 		var promises = [];
 
-		tree.match(match('link[module][href]'), function (node) {
+		tree.match(match('link[module][href], style[module]'), function (node) {
 			promises.push(getContentFromNode(options, node)
 				.then(processContentWithPostCSS(options, node.attrs && node.attrs.href))
 				.then(function (processed) {
