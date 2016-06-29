@@ -38,6 +38,7 @@ function getContentFromNode(options, node) {
  * @return {String}       [absolute path to file]
  */
 function normalizePath(href, _root, _from) {
+	/* istanbul ignore next */
 	return href ? path.join(path.isAbsolute(href) ? _root : path.dirname(_from), href) : _from;
 }
 
@@ -54,6 +55,7 @@ function processContentWithPostCSS(options, href) {
 	return function (content) {
 		if (options.generateScopedName) {
 			options.generateScopedName = typeof options.generateScopedName === 'function' ?
+				/* istanbul ignore next */
 				options.generateScopedName :
 				genericNames(options.generateScopedName, {context: options.root});
 		} else {
@@ -61,6 +63,15 @@ function processContentWithPostCSS(options, href) {
 				return Scope.generateScopedName(local, path.relative(options.root, filename));
 			};
 		}
+
+		// Setup css-modules plugins 💼
+		var runner = postcss([
+			Values,
+			LocalByDefault,
+			ExtractImports,
+			new Scope({generateScopedName: options.generateScopedName}),
+			new Parser({fetch: fetch})
+		].concat(options.plugins));
 
 		function fetch(_to, _from) {
 			// Seems ok 👏
@@ -80,15 +91,6 @@ function processContentWithPostCSS(options, href) {
 				});
 			});
 		}
-
-		// Setup css-modules plugins 💼
-		var runner = postcss([
-			Values,
-			LocalByDefault,
-			ExtractImports,
-			new Scope({generateScopedName: options.generateScopedName}),
-			new Parser({fetch: fetch})
-		].concat(options.plugins));
 
 		return runner.process(content, {from: normalizePath(href, options.root, options.from)});
 	};
@@ -139,6 +141,7 @@ module.exports = function plugin(options) {
 			return node;
 		});
 
+		/* istanbul ignore next */
 		return promises.length ? Promise.all(promises).then(function () {
 			return tree;
 		}) : tree;

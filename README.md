@@ -57,9 +57,10 @@ posthtml()
 ## Api
 ```js
 options = {
-  context: './', // root path for links lookup
+  root: './', // root path for links lookup
   plugins: [], // postcss plugins to apply for every link
-  generateScopedName: genericNames // function to process css names or string
+  generateScopedName: genericNames // function to process css names or string,
+  from: '' // pathname to resolving file (it's always better to provide it)
 };
 ```
 

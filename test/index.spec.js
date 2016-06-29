@@ -68,6 +68,13 @@ test('Must be able to compose styles', async t => {
 test('Must be able to compose styles from file', async t => {
 	const source = '<style module>.compose {color: black; composes: compositor from "./compose.spec.css"}</style><div classname="compose"></div>';
 	const expected = '<style>.compose-test {color: black}</style><div class="compose-test compositor-test"></div>';
-	const {html} = await posthtml().use(plugin({generateScopedName: '[local]-test'})).process(source);
+	const {html} = await posthtml().use(plugin({from: __filename, generateScopedName: '[local]-test'})).process(source);
 	t.is(html, expected);
+});
+
+test('Must generate default classnames if generateScopedName is undefined', async t => {
+	const actual = '<style module>.root {color: red;}</style><div classname="root"></div>';
+	const expected = `<style>._index_spec__root {color: red;}</style><div class="_index_spec__root"></div>`;
+	const {html} = await posthtml().use(plugin({from: __filename})).process(actual);
+	t.is(html.replace(/(\n|\t)/g, ''), expected);
 });
