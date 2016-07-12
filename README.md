@@ -102,17 +102,17 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-[npm]: https://img.shields.io/npm/v/posthtml-modules.svg
-[npm-url]: https://npmjs.com/package/posthtml-modules
+[npm]: https://img.shields.io/npm/v/posthtml-postcss-modules.svg
+[npm-url]: https://npmjs.com/package/posthtml-postcss-modules
 
-[deps]: https://david-dm.org/posthtml/posthtml-modules.svg
-[deps-url]: https://david-dm.org/posthtml/posthtml-modules
+[deps]: https://david-dm.org/posthtml/posthtml-postcss-modules.svg
+[deps-url]: https://david-dm.org/posthtml/posthtml-postcss-modules
 
 [style]: https://img.shields.io/badge/code_style-XO-5ed9c7.svg
 [style-url]: https://github.com/sindresorhus/xo
 
-[travis]: http://img.shields.io/travis/posthtml/posthtml-modules.svg
-[travis-url]: https://travis-ci.org/posthtml/posthtml-modules
+[travis]: http://img.shields.io/travis/posthtml/posthtml-postcss-modules.svg
+[travis-url]: https://travis-ci.org/posthtml/posthtml-postcss-modules
 
-[cover]: https://coveralls.io/repos/github/posthtml/posthtml-modules/badge.svg?branch=master
-[cover-url]: https://coveralls.io/github/posthtml/posthtml-modules?branch=master
+[cover]: https://coveralls.io/repos/github/posthtml/posthtml-postcss-modules/badge.svg?branch=master
+[cover-url]: https://coveralls.io/github/posthtml/posthtml-postcss-modules?branch=master
