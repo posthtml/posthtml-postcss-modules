@@ -38,7 +38,7 @@
     "posthtml-match-helper": "^1.0.1"
   },
   "devDependencies": {
-    "ava": "^0.17.0",
+    "ava": "^0.18.0",
     "nyc": "^10.0.0",
     "posthtml": "^0.9.0",
     "xo": "^0.17.1"
