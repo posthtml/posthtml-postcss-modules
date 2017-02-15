@@ -96,16 +96,48 @@ function processContentWithPostCSS(options, href) {
 	};
 }
 
-module.exports = function plugin(options) {
+/**
+ * returns object with default settings
+ * @param  {Object} options [plugin's options]
+ * @return {Object}
+ */
+function getDefaultOptions(options) {
 	options = options || {};
 	options.root = path.resolve(options.root || './');
 	options.plugins = options.plugins || [];
 	options.from = options.from || '';
+	options.selectors = options.selectors || {};
+	options.selectors.link = options.selectors.link || 'link[module][href]';
+	options.selectors.style = options.selectors.style || 'style[module]';
+	options.attributes = options.attributes || {};
+	options.attributes.class = options.attributes.class || 'classname';
+	return options;
+}
 
-	return function parse(tree) {
+/**
+ * returns object with default settings
+ * @param  {Object} node [node that will be processed]
+ * @param  {String} oldClassName [the class name that will be removed]
+ * @param  {String} newClassName [the class name that will be added]
+ * @return {Object}      [processed node]
+ */
+function addProcessedClassName(node, oldClassName, newClassName) {
+	if (node.attrs.class) {
+		node.attrs.class = node.attrs.class.split(' ').filter(currentClassName => currentClassName !== oldClassName);
+		node.attrs.class.push(newClassName);
+		node.attrs.class = node.attrs.class.join(' ');
+	} else {
+		node.attrs.class = newClassName;
+	}
+	return node;
+}
+
+module.exports = function (options) {
+	options = getDefaultOptions(options);
+
+	return function (tree) {
 		var promises = [];
-
-		tree.match(match('link[module][href], style[module]'), function (node) {
+		tree.match(match(`${options.selectors.link}, ${options.selectors.style}`), function (node) {
 			promises.push(getContentFromNode(options, node)
 				.then(processContentWithPostCSS(options, node.attrs && node.attrs.href))
 				.then(function (processed) {
@@ -114,25 +146,32 @@ module.exports = function plugin(options) {
 					 * with classes from css
 					 */
 					Object.keys(processed.root.tokens).forEach(function (key) {
-						tree.match({attrs: {classname: new RegExp('(?:^|\\s)' + key + '(?:\\s|$)')}}, function (node) {
-							node.attrs.class = node.attrs.class ? node.attrs.class + ' ' + processed.root.tokens[key] : processed.root.tokens[key];
-							return node;
+						var regexp = new RegExp('(?:^|\\s)' + key + '(?:\\s|$)');
+						var attrs = {};
+						attrs[options.attributes.class] = regexp;
+						var matcher = {attrs: attrs};
+						tree.match(matcher, function (node) {
+							return addProcessedClassName(node, key, processed.root.tokens[key]);
 						});
 					});
 
-					// Remove classname attribute from everything
-					tree.match(match('[classname]'), function (node) {
-						delete node.attrs.classname;
-						return node;
-					});
+					// Remove custom class attribute from everything if exists
+					if (options.attributes.class !== 'class') {
+						tree.match(match(`[${options.attributes.class}]`), function (node) {
+							delete node.attrs.classname;
+							return node;
+						});
+					}
 
 					/**
 					 * Remove href and module attributes
 					 * and replace tag with <style>
 					 * and content with parsed css, hooray! 🙌
 					 */
-					delete node.attrs.href;
-					delete node.attrs.module;
+					if (node.attrs) {
+						delete node.attrs.href;
+						delete node.attrs.module;
+					}
 					node.tag = 'style';
 					node.content = processed.css;
 				})

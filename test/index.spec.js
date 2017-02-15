@@ -7,7 +7,7 @@ import plugin from '..';
 const filecontents = fs.readFileSync(path.resolve(__dirname, './test.spec.css'), 'utf8');
 
 test('Must include css', async t => {
-	const actual = `<div><link href="./test.spec.css" module/></div>`;
+	const actual = `<div><link href="./test/test.spec.css" module/></div>`;
 	const expected = `<div><style>${filecontents}</style></div>`;
 
 	const {html} = await posthtml().use(plugin({
@@ -18,7 +18,7 @@ test('Must include css', async t => {
 });
 
 test('Must replace html classes with processed ones', async t => {
-	const actual = `<link href="./test.spec.css" module/><div classname="root"></div>`;
+	const actual = `<link href="./test/test.spec.css" module/><div classname="root"></div>`;
 	const expected = `<style>${filecontents}</style><div class="root"></div>`;
 
 	const {html} = await posthtml().use(plugin({
@@ -29,7 +29,7 @@ test('Must replace html classes with processed ones', async t => {
 });
 
 test('Must keep previous classes on html elements', async t => {
-	const actual = `<link href="./test.spec.css" module/><div classname="root" class="div-class"></div>`;
+	const actual = `<link href="./test/test.spec.css" module/><div classname="root" class="div-class"></div>`;
 	const expected = `<style>${filecontents}</style><div class="div-class root"></div>`;
 
 	const {html} = await posthtml().use(plugin({
@@ -72,9 +72,23 @@ test('Must be able to compose styles from file', async t => {
 	t.is(html, expected);
 });
 
+test('Must be able to override the style selector', async t => {
+	const actual = '<style>.root {color: red;}</style><div classname="root"></div>';
+	const expected = `<style>._test_index_spec__root {color: red;}</style><div class="_test_index_spec__root"></div>`;
+	const {html} = await posthtml().use(plugin({from: __filename, selectors: {style: 'style'}})).process(actual);
+	t.is(html.replace(/(\n|\t)/g, ''), expected);
+});
+
+test('Must be able to override the class selector', async t => {
+	const actual = '<style>.root {color: red;}</style><div class="root"></div>';
+	const expected = `<style>._test_index_spec__root {color: red;}</style><div class="_test_index_spec__root"></div>`;
+	const {html} = await posthtml().use(plugin({from: __filename, selectors: {style: 'style'}, attributes: {class: 'class'}})).process(actual);
+	t.is(html.replace(/(\n|\t)/g, ''), expected);
+});
+
 test('Must generate default classnames if generateScopedName is undefined', async t => {
 	const actual = '<style module>.root {color: red;}</style><div classname="root"></div>';
-	const expected = `<style>._index_spec__root {color: red;}</style><div class="_index_spec__root"></div>`;
+	const expected = `<style>._test_index_spec__root {color: red;}</style><div class="_test_index_spec__root"></div>`;
 	const {html} = await posthtml().use(plugin({from: __filename})).process(actual);
 	t.is(html.replace(/(\n|\t)/g, ''), expected);
 });
