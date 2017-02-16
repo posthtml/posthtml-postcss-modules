@@ -102,15 +102,18 @@ function processContentWithPostCSS(options, href) {
  * @return {Object}
  */
 function getDefaultOptions(options) {
-	options = options || {};
-	options.root = path.resolve(options.root || './');
-	options.plugins = options.plugins || [];
-	options.from = options.from || '';
-	options.selectors = options.selectors || {};
-	options.selectors.link = options.selectors.link || 'link[module][href]';
-	options.selectors.style = options.selectors.style || 'style[module]';
-	options.attributes = options.attributes || {};
-	options.attributes.class = options.attributes.class || 'classname';
+	options = Object.assign({
+		plugins: [],
+		from: '',
+		selectors: {
+			link: 'link[module][href]',
+			style: 'style[module]'
+		},
+		attributes: {
+			class: 'classname'
+		}
+	}, options);
+	options.root = path.resolve(options.root || process.cwd());
 	return options;
 }
 
@@ -132,32 +135,32 @@ function addProcessedClassName(node, oldClassName, newClassName) {
 	return node;
 }
 
-module.exports = function (options) {
+module.exports = options => {
 	options = getDefaultOptions(options);
 
-	return function (tree) {
+	return tree => {
 		var promises = [];
-		tree.match(match(`${options.selectors.link}, ${options.selectors.style}`), function (node) {
+		tree.match(match(`${options.selectors.link}, ${options.selectors.style}`), node => {
 			promises.push(getContentFromNode(options, node)
 				.then(processContentWithPostCSS(options, node.attrs && node.attrs.href))
-				.then(function (processed) {
+				.then(processed => {
 					/**
 					 * Replacing all classname attributes in html,
 					 * with classes from css
 					 */
-					Object.keys(processed.root.tokens).forEach(function (key) {
+					Object.keys(processed.root.tokens).forEach(key => {
 						var regexp = new RegExp('(?:^|\\s)' + key + '(?:\\s|$)');
 						var attrs = {};
 						attrs[options.attributes.class] = regexp;
 						var matcher = {attrs: attrs};
-						tree.match(matcher, function (node) {
+						tree.match(matcher, node => {
 							return addProcessedClassName(node, key, processed.root.tokens[key]);
 						});
 					});
 
 					// Remove custom class attribute from everything if exists
 					if (options.attributes.class !== 'class') {
-						tree.match(match(`[${options.attributes.class}]`), function (node) {
+						tree.match(match(`[${options.attributes.class}]`), node => {
 							delete node.attrs.classname;
 							return node;
 						});
@@ -181,7 +184,7 @@ module.exports = function (options) {
 		});
 
 		/* istanbul ignore next */
-		return promises.length ? Promise.all(promises).then(function () {
+		return promises.length ? Promise.all(promises).then(() => {
 			return tree;
 		}) : tree;
 	};
