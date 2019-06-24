@@ -28,20 +28,20 @@
   },
   "homepage": "https://github.com/canvaskisa/posthtml-postcss-modules",
   "dependencies": {
-    "generic-names": "^1.0.1",
-    "postcss": "^5.2.17",
-    "postcss-modules-extract-imports": "^1.0.1",
-    "postcss-modules-local-by-default": "^1.1.1",
+    "generic-names": "^2.0.1",
+    "postcss": "^7.0.17",
+    "postcss-modules-extract-imports": "^2.0.0",
+    "postcss-modules-local-by-default": "^3.0.2",
     "postcss-modules-parser": "^1.1.0",
-    "postcss-modules-scope": "^1.0.2",
-    "postcss-modules-values": "^1.2.1",
+    "postcss-modules-scope": "^2.1.0",
+    "postcss-modules-values": "^3.0.0",
     "posthtml-match-helper": "^1.0.1"
   },
   "devDependencies": {
-    "ava": "^0.19.1",
-    "nyc": "^10.3.0",
-    "posthtml": "^0.9.2",
-    "xo": "^0.19.0"
+    "ava": "^2.1.0",
+    "nyc": "^14.1.1",
+    "posthtml": "^0.11.4",
+    "xo": "^0.24.0"
   },
   "nyc": {
     "lines": 100,
