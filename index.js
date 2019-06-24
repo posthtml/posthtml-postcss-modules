@@ -136,7 +136,7 @@ module.exports = function (options) {
 					delete node.attrs.href;
 					delete node.attrs.module;
 					node.tag = 'style';
-					node.content = processed.css;
+					node.content = [processed.css];
 				})
 			);
 
