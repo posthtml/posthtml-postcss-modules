@@ -4,10 +4,12 @@ import test from 'ava';
 import posthtml from 'posthtml';
 import plugin from '..';
 
+console.log(path.resolve(__dirname, './test.spec.css'));
+
 const filecontents = fs.readFileSync(path.resolve(__dirname, './test.spec.css'), 'utf8');
 
 test('Must include css', async t => {
-	const actual = `<div><link href="./test.spec.css" module/></div>`;
+	const actual = '<div><link href="./test/test.spec.css" module/></div>';
 	const expected = `<div><style>${filecontents}</style></div>`;
 
 	const {html} = await posthtml().use(plugin({
@@ -18,7 +20,7 @@ test('Must include css', async t => {
 });
 
 test('Must replace html classes with processed ones', async t => {
-	const actual = `<link href="./test.spec.css" module/><div classname="root"></div>`;
+	const actual = '<link href="./test/test.spec.css" module/><div classname="root"></div>';
 	const expected = `<style>${filecontents}</style><div class="root"></div>`;
 
 	const {html} = await posthtml().use(plugin({
@@ -29,7 +31,7 @@ test('Must replace html classes with processed ones', async t => {
 });
 
 test('Must keep previous classes on html elements', async t => {
-	const actual = `<link href="./test.spec.css" module/><div classname="root" class="div-class"></div>`;
+	const actual = '<link href="./test/test.spec.css" module/><div classname="root" class="div-class"></div>';
 	const expected = `<style>${filecontents}</style><div class="div-class root"></div>`;
 
 	const {html} = await posthtml().use(plugin({
@@ -39,9 +41,10 @@ test('Must keep previous classes on html elements', async t => {
 	t.is(html, expected);
 });
 
-test('Must fail when module\'s href cannot be found', t => {
-	const source = `<div><link href="./undefined.css" module/></div>`;
-	t.throws(posthtml().use(plugin()).process(source));
+test('Must fail when module\'s href cannot be found', async t => {
+	const source = '<div><link href="./undefined.css" module/></div>';
+	const error = await t.throwsAsync(posthtml().use(plugin()).process(source));
+	t.is(error.message, 'ENOENT: no such file or directory, open \'undefined.css\'');
 });
 
 test('Must process <style module/> contents', async t => {
@@ -74,7 +77,7 @@ test('Must be able to compose styles from file', async t => {
 
 test('Must generate default classnames if generateScopedName is undefined', async t => {
 	const actual = '<style module>.root {color: red;}</style><div classname="root"></div>';
-	const expected = `<style>._index_spec__root {color: red;}</style><div class="_index_spec__root"></div>`;
+	const expected = '<style>._test_index_spec__root {color: red;}</style><div class="_test_index_spec__root"></div>';
 	const {html} = await posthtml().use(plugin({from: __filename})).process(actual);
 	t.is(html.replace(/(\n|\t)/g, ''), expected);
 });
