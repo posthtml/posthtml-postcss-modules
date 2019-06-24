@@ -39,7 +39,7 @@ test('Must keep previous classes on html elements', async t => {
 	t.is(html, expected);
 });
 
-test('Must fail when module\'s href cannot be found', async t => {
+test('Must fail when module\'s href cannot be found', t => {
 	const source = `<div><link href="./undefined.css" module/></div>`;
 	t.throws(posthtml().use(plugin()).process(source));
 });
