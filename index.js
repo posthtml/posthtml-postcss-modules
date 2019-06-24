@@ -15,7 +15,8 @@ const Parser = require('postcss-modules-parser');
 /**
  * Retieves content of node element
  * or reads file from href attribute of <link module>
- * @param  {Object} node
+ * @param  {Object} options [plugin's options]
+ * @param  {Object} node [ast node]
  * @return {Promise<String>} contents of file or <style> tag
  */
 function getContentFromNode(options, node) {
@@ -45,7 +46,8 @@ function normalizePath(href, _root, _from) {
 /**
  * Processes css with css-modules plugins
  * @param  {Object} options [plugin's options]
- * @return {Function}
+ * @param  {String} href [path to the file]
+ * @return {Function} [generate scoped name]
  */
 function processContentWithPostCSS(options, href) {
 	/**
@@ -142,7 +144,7 @@ module.exports = function (options) {
 		});
 
 		/* istanbul ignore next */
-		return promises.length ? Promise.all(promises).then(() => {
+		return promises.length > 0 ? Promise.all(promises).then(() => {
 			return tree;
 		}) : tree;
 	};
