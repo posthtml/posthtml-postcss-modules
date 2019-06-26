@@ -1,27 +1,28 @@
 'use strict';
 
-var fs = require('fs');
-var path = require('path');
-var match = require('posthtml-match-helper');
-var genericNames = require('generic-names');
+const fs = require('fs');
+const path = require('path');
+const match = require('posthtml-match-helper');
+const genericNames = require('generic-names');
 
-var postcss = require('postcss');
-var Values = require('postcss-modules-values');
-var LocalByDefault = require('postcss-modules-local-by-default');
-var ExtractImports = require('postcss-modules-extract-imports');
-var Scope = require('postcss-modules-scope');
-var Parser = require('postcss-modules-parser');
+const postcss = require('postcss');
+const Values = require('postcss-modules-values');
+const LocalByDefault = require('postcss-modules-local-by-default');
+const ExtractImports = require('postcss-modules-extract-imports');
+const Scope = require('postcss-modules-scope');
+const Parser = require('postcss-modules-parser');
 
 /**
- * retieves content of node element
+ * Retieves content of node element
  * or reads file from href attribute of <link module>
- * @param  {Object} node
+ * @param  {Object} options [plugin's options]
+ * @param  {Object} node [ast node]
  * @return {Promise<String>} contents of file or <style> tag
  */
 function getContentFromNode(options, node) {
-	return new Promise(function (resolve, reject) {
+	return new Promise((resolve, reject) => {
 		if (node.tag === 'link') {
-			return fs.readFile(normalizePath(node.attrs.href, options.root, options.from), 'utf8', function (err, res) {
+			return fs.readFile(normalizePath(node.attrs.href, options.root, options.from), 'utf8', (err, res) => {
 				return err ? reject(err) : resolve(res);
 			});
 		}
@@ -43,9 +44,10 @@ function normalizePath(href, _root, _from) {
 }
 
 /**
- * processes css with css-modules plugins
+ * Processes css with css-modules plugins
  * @param  {Object} options [plugin's options]
- * @return {Function}
+ * @param  {String} href [path to the file]
+ * @return {Function} [generate scoped name]
  */
 function processContentWithPostCSS(options, href) {
 	/**
@@ -65,27 +67,27 @@ function processContentWithPostCSS(options, href) {
 		}
 
 		// Setup css-modules plugins 💼
-		var runner = postcss([
+		const runner = postcss([
 			Values,
 			LocalByDefault,
 			ExtractImports,
 			new Scope({generateScopedName: options.generateScopedName}),
-			new Parser({fetch: fetch})
+			new Parser({fetch})
 		].concat(options.plugins));
 
 		function fetch(_to, _from) {
 			// Seems ok 👏
-			var filePath = normalizePath(_to, options.root, _from);
+			const filePath = normalizePath(_to, options.root, _from);
 
-			return new Promise(function (resolve, reject) {
-				return fs.readFile(filePath, 'utf8', function (err, content) {
+			return new Promise((resolve, reject) => {
+				return fs.readFile(filePath, 'utf8', (err, content) => {
 					/* istanbul ignore next: just error handler */
 					if (err) {
 						return reject(err);
 					}
 
 					return runner.process(content, {from: filePath})
-						.then(function (result) {
+						.then(result => {
 							return resolve(result.root.tokens);
 						}).catch(reject);
 				});
@@ -96,32 +98,32 @@ function processContentWithPostCSS(options, href) {
 	};
 }
 
-module.exports = function plugin(options) {
+module.exports = function (options) {
 	options = options || {};
 	options.root = path.resolve(options.root || './');
 	options.plugins = options.plugins || [];
 	options.from = options.from || '';
 
-	return function parse(tree) {
-		var promises = [];
+	return function (tree) {
+		const promises = [];
 
-		tree.match(match('link[module][href], style[module]'), function (node) {
+		tree.match(match('link[module][href], style[module]'), node => {
 			promises.push(getContentFromNode(options, node)
 				.then(processContentWithPostCSS(options, node.attrs && node.attrs.href))
-				.then(function (processed) {
+				.then(processed => {
 					/**
 					 * Replacing all classname attributes in html,
 					 * with classes from css
 					 */
-					Object.keys(processed.root.tokens).forEach(function (key) {
-						tree.match({attrs: {classname: new RegExp('(?:^|\\s)' + key + '(?:\\s|$)')}}, function (node) {
+					Object.keys(processed.root.tokens).forEach(key => {
+						tree.match({attrs: {classname: new RegExp('(?:^|\\s)' + key + '(?:\\s|$)')}}, node => {
 							node.attrs.class = node.attrs.class ? node.attrs.class + ' ' + processed.root.tokens[key] : processed.root.tokens[key];
 							return node;
 						});
 					});
 
 					// Remove classname attribute from everything
-					tree.match(match('[classname]'), function (node) {
+					tree.match(match('[classname]'), node => {
 						delete node.attrs.classname;
 						return node;
 					});
@@ -134,7 +136,7 @@ module.exports = function plugin(options) {
 					delete node.attrs.href;
 					delete node.attrs.module;
 					node.tag = 'style';
-					node.content = processed.css;
+					node.content = [processed.css];
 				})
 			);
 
@@ -142,7 +144,7 @@ module.exports = function plugin(options) {
 		});
 
 		/* istanbul ignore next */
-		return promises.length ? Promise.all(promises).then(function () {
+		return promises.length > 0 ? Promise.all(promises).then(() => {
 			return tree;
 		}) : tree;
 	};
