@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "nyc ava",
-    "pretest": "xo"
+    "pretest": "xo",
+    "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "keywords": [
     "posthtml",
