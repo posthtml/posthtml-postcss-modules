@@ -1,11 +1,12 @@
 {
   "name": "posthtml-postcss-modules",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "CSS Modules in html",
   "main": "index.js",
   "scripts": {
     "test": "nyc ava",
-    "pretest": "xo"
+    "pretest": "xo",
+    "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "keywords": [
     "posthtml",
